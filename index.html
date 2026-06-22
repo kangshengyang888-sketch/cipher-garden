@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>异步密语花园 · Cipher Garden</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="garden-bg" aria-hidden="true">
+    <div class="fireflies"></div>
+  </div>
+
+  <header class="site-header">
+    <div class="logo">
+      <span class="logo-icon">🌿</span>
+      <div>
+        <h1>异步密语花园</h1>
+        <p class="tagline">Cipher Garden · 用 emoji 密语种下一座花圃</p>
+      </div>
+    </div>
+    <nav class="mode-nav" id="modeNav">
+      <button type="button" class="mode-btn active" data-mode="create">创作花园</button>
+      <button type="button" class="mode-btn" data-mode="solve">解谜花园</button>
+    </nav>
+  </header>
+
+  <main id="app">
+    <!-- Create mode -->
+    <section id="createPanel" class="panel create-panel">
+      <div class="toolbar glass">
+        <h2>种植工具</h2>
+        <div class="tool-group">
+          <label>选择 emoji</label>
+          <div id="emojiPalette" class="emoji-palette"></div>
+        </div>
+        <div class="tool-group tool-row">
+          <label>旋转</label>
+          <div id="rotationPicker" class="rotation-picker"></div>
+        </div>
+        <div class="tool-group">
+          <label>花色</label>
+          <div id="colorPalette" class="color-palette"></div>
+        </div>
+        <div class="tool-group secret-group">
+          <label>密语类型</label>
+          <div id="secretModeTabs" class="secret-tabs" role="tablist">
+            <button type="button" class="secret-tab active" data-mode="text" role="tab" aria-selected="true">文字密语</button>
+            <button type="button" class="secret-tab" data-mode="media" role="tab" aria-selected="false">照片密语</button>
+            <button type="button" class="secret-tab" data-mode="both" role="tab" aria-selected="false">文字+照片</button>
+          </div>
+          <div id="textSecretPanel" class="secret-panel">
+            <label for="hiddenMessage">密语（解谜成功后揭晓）</label>
+            <textarea id="hiddenMessage" rows="2" maxlength="120" placeholder="写一句想对解谜者说的话…"></textarea>
+          </div>
+          <div id="mediaSecretPanel" class="secret-panel hidden">
+            <p class="hint camera-hint">拍下你想藏进花里的秘密 · 分享时会自动压缩以适合微信</p>
+            <div class="media-type-toggle">
+              <button type="button" class="media-type-btn active" data-type="photo">照片</button>
+              <button type="button" class="media-type-btn" data-type="video">短视频（3秒）</button>
+            </div>
+            <div id="cameraArea" class="camera-area hidden">
+              <video id="cameraPreview" playsinline muted aria-label="相机预览"></video>
+              <div class="camera-actions">
+                <button type="button" id="capturePhotoBtn" class="btn btn-primary">拍照</button>
+                <button type="button" id="captureVideoBtn" class="btn btn-primary hidden">开始录制</button>
+                <button type="button" id="stopCameraBtn" class="btn btn-ghost">关闭相机</button>
+              </div>
+            </div>
+            <div id="cameraStartArea" class="camera-start">
+              <button type="button" id="openCameraBtn" class="btn btn-accent">📷 打开相机</button>
+              <label class="file-fallback">
+                <span class="btn btn-ghost">从相册选择照片</span>
+                <input type="file" id="photoFileInput" accept="image/*" hidden>
+              </label>
+            </div>
+            <div id="mediaPreviewArea" class="media-preview hidden">
+              <img id="photoPreview" class="media-preview-el hidden" alt="已拍摄的照片预览">
+              <video id="videoPreview" class="media-preview-el hidden" playsinline controls muted></video>
+              <div class="media-preview-actions">
+                <button type="button" id="retakeMediaBtn" class="btn btn-ghost">重拍</button>
+                <button type="button" id="clearMediaBtn" class="btn btn-ghost">清除</button>
+              </div>
+            </div>
+            <p id="compressStatus" class="compress-status hidden" aria-live="polite"></p>
+            <p id="urlLengthWarning" class="url-warning hidden"></p>
+          </div>
+        </div>
+        <div class="tool-actions">
+          <button type="button" id="clearGridBtn" class="btn btn-ghost">清空花圃</button>
+          <button type="button" id="loadDraftBtn" class="btn btn-ghost">恢复草稿</button>
+        </div>
+      </div>
+
+      <div class="garden-workspace">
+        <div class="grid-section glass">
+          <div class="section-head">
+            <h2>5×5 花圃</h2>
+            <p class="hint">点击格子种植 · 再次点击清除</p>
+          </div>
+          <div id="createGrid" class="flower-grid"></div>
+        </div>
+
+        <aside class="preview-section glass">
+          <h2>花朵预览</h2>
+          <div id="cellPreview" class="flower-preview-large"></div>
+          <p id="cellPreviewMeta" class="preview-meta">选择或种植一格以预览</p>
+          <h3>全园概览</h3>
+          <div id="gardenOverview" class="garden-overview"></div>
+          <div class="share-box">
+            <fieldset class="share-mode-toggle">
+              <legend>分享模式</legend>
+              <label class="share-mode-option">
+                <input type="radio" name="shareMode" id="shareModeStandard" value="standard" checked>
+                <span>标准分享（适合微信，≤2048 字符）</span>
+              </label>
+              <label class="share-mode-option">
+                <input type="radio" name="shareMode" id="shareModeHd" value="hd">
+                <span>高清模式（链接较长，可能无法在微信发送）</span>
+              </label>
+            </fieldset>
+            <p class="hint share-hint">部署到 GitHub Pages 后，链接与二维码均指向线上地址（含 #puzzle=… 完整谜题数据）</p>
+            <button type="button" id="generateLinkBtn" class="btn btn-primary">生成分享链接</button>
+            <p id="localhostWarning" class="url-warning url-warning-danger hidden"></p>
+            <div id="shareResult" class="share-result hidden">
+              <input type="text" id="shareUrl" readonly>
+              <button type="button" id="copyLinkBtn" class="btn btn-accent">复制</button>
+            </div>
+            <div id="shareQrWrap" class="share-qr-wrap hidden">
+              <p class="share-qr-label">微信扫码打开</p>
+              <canvas id="shareQrCanvas" aria-label="分享链接二维码"></canvas>
+            </div>
+            <p id="copyToast" class="toast hidden">已复制到剪贴板</p>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- Solve mode -->
+    <section id="solvePanel" class="panel solve-panel hidden">
+      <div id="solveLoadPrompt" class="load-prompt glass">
+        <h2>加载谜题</h2>
+        <p>粘贴完整分享链接，或直接在 URL 中带 <code>#puzzle=...</code> 打开</p>
+        <p class="hint">链接中的谜题数据必须完整，微信等应用可能截断过长链接</p>
+        <input type="text" id="puzzleUrlInput" placeholder="粘贴完整链接…">
+        <button type="button" id="loadPuzzleBtn" class="btn btn-primary">开始解谜</button>
+      </div>
+
+      <div id="solveGame" class="solve-game hidden">
+        <div class="solve-top glass">
+          <div class="solve-info">
+            <h2>目标花圃</h2>
+            <p class="hint">记住每朵花的样子——emoji 组合是隐藏的</p>
+            <div class="attempts-badge">
+              剩余次数：<strong id="attemptsLeft">3</strong> / 3
+            </div>
+          </div>
+          <div id="targetGarden" class="target-garden"></div>
+        </div>
+
+        <div class="guess-section glass">
+          <div class="section-head">
+            <h2>你的猜测</h2>
+            <p class="hint">为每格选择 emoji · 旋转 · 花色，然后提交</p>
+          </div>
+          <div class="solve-toolbar">
+            <div id="solveEmojiPalette" class="emoji-palette compact"></div>
+            <div id="solveRotationPicker" class="rotation-picker"></div>
+            <div id="solveColorPalette" class="color-palette compact"></div>
+          </div>
+          <div id="guessGrid" class="flower-grid guess-grid"></div>
+          <button type="button" id="submitGuessBtn" class="btn btn-primary">提交猜测</button>
+        </div>
+
+        <div id="guessHistory" class="guess-history glass hidden">
+          <h2>猜测记录</h2>
+          <div id="guessHistoryList"></div>
+          <div class="legend">
+            <span class="legend-item exact">完全匹配</span>
+            <span class="legend-item partial">emoji 对 · 旋转/色错</span>
+            <span class="legend-item present">emoji 在别格</span>
+            <span class="legend-item absent">不匹配</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Bloom overlay -->
+  <div id="bloomOverlay" class="bloom-overlay hidden" aria-hidden="true">
+    <div class="bloom-content">
+      <div id="bloomFlower" class="bloom-flower"></div>
+      <h2 class="bloom-title">密语绽放</h2>
+      <div id="revealedMediaWrap" class="revealed-media-wrap hidden">
+        <img id="revealedPhoto" class="revealed-media hidden" alt="揭晓的照片密语">
+        <video id="revealedVideo" class="revealed-media hidden" playsinline controls autoplay></video>
+      </div>
+      <p id="revealedMessage" class="revealed-message hidden"></p>
+      <button type="button" id="closeBloomBtn" class="btn btn-primary">继续欣赏</button>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <p>纯前端 · 无服务器 · 谜题藏在链接里</p>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1/build/qrcode.min.js"></script>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
