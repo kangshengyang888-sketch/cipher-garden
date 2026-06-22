@@ -116,36 +116,39 @@ export async function compressPhoto(dataUrl, options = {}) {
   return encodeCanvas(canvas, quality);
 }
 
-/** Standard mode — QR-optimized ladder; stops above 480px / 0.48 when possible. */
+/** Standard mode — QR-optimized ladder; higher budget allows staying above 480px / 0.48 longer. */
 const COMPRESS_STEPS_QR = [
   { maxDim: 1920, quality: 0.90 },
   { maxDim: 1920, quality: 0.85 },
-  { maxDim: 1600, quality: 0.85 },
+  { maxDim: 1920, quality: 0.80 },
   { maxDim: 1600, quality: 0.80 },
   { maxDim: 1600, quality: 0.75 },
-  { maxDim: 1400, quality: 0.75 },
+  { maxDim: 1600, quality: 0.70 },
   { maxDim: 1400, quality: 0.70 },
-  { maxDim: 1200, quality: 0.68 },
-  { maxDim: 1000, quality: 0.62 },
-  { maxDim: 800, quality: 0.58 },
-  { maxDim: 640, quality: 0.52 },
+  { maxDim: 1400, quality: 0.65 },
+  { maxDim: 1200, quality: 0.62 },
+  { maxDim: 1000, quality: 0.58 },
+  { maxDim: 800, quality: 0.54 },
+  { maxDim: 640, quality: 0.50 },
   { maxDim: PHOTO_MIN_DIM, quality: PHOTO_QUALITY_LOW },
 ];
 
-/** HD mode — higher resolution and quality floor (≥ 0.60). */
+/** HD mode — up to 2560px; quality floor ≥ 0.65. */
 const COMPRESS_STEPS_HD = [
-  { maxDim: 1920, quality: 0.92 },
-  { maxDim: 1920, quality: 0.88 },
+  { maxDim: 2560, quality: 0.92 },
+  { maxDim: 2560, quality: 0.88 },
+  { maxDim: 2560, quality: 0.85 },
+  { maxDim: 2560, quality: 0.82 },
+  { maxDim: 2560, quality: 0.78 },
   { maxDim: 1920, quality: 0.85 },
   { maxDim: 1920, quality: 0.82 },
-  { maxDim: 1600, quality: 0.82 },
-  { maxDim: 1600, quality: 0.78 },
+  { maxDim: 1920, quality: 0.78 },
+  { maxDim: 1920, quality: 0.75 },
   { maxDim: 1600, quality: 0.75 },
-  { maxDim: 1400, quality: 0.72 },
-  { maxDim: 1400, quality: 0.68 },
-  { maxDim: 1200, quality: 0.65 },
-  { maxDim: 1000, quality: 0.62 },
-  { maxDim: 800, quality: 0.60 },
+  { maxDim: 1600, quality: 0.72 },
+  { maxDim: 1400, quality: 0.70 },
+  { maxDim: 1200, quality: 0.68 },
+  { maxDim: 1000, quality: 0.65 },
 ];
 
 function getCompressSteps(mode = 'standard') {

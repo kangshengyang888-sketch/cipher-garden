@@ -9,10 +9,10 @@ export const DRAFT_KEY = 'cipher-garden-draft';
 export const SHARE_URL_SAFE_LENGTH = 2048;
 
 /** Standard share mode — QR-optimized; fits in scannable QR codes with good photo quality. */
-export const SHARE_URL_QR_LENGTH = 12000;
+export const SHARE_URL_QR_LENGTH = 24000;
 
 /** HD share mode — maximum quality for QR scan opens; too long for chat paste. */
-export const SHARE_URL_HD_LENGTH = 32000;
+export const SHARE_URL_HD_LENGTH = 64000;
 
 /** Absolute upper bound for inline URL embedding (browser limits). */
 export const MAX_URL_LENGTH = 64000;

@@ -3,6 +3,7 @@ import {
   DRAFT_KEY,
   EMOJIS,
   ROTATIONS,
+  SHARE_URL_QR_LENGTH,
   SHARE_URL_SAFE_LENGTH,
   emptyCell,
   emptyGrid,
@@ -465,7 +466,7 @@ function renderShareQr(els, url) {
     return;
   }
 
-  const errorCorrectionLevel = url.length > 12000 ? 'L' : url.length > 6000 ? 'M' : 'M';
+  const errorCorrectionLevel = url.length > SHARE_URL_QR_LENGTH ? 'L' : url.length > SHARE_URL_QR_LENGTH / 2 ? 'M' : 'M';
 
   QRCode.toCanvas(
     shareQrCanvas,
