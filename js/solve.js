@@ -30,6 +30,7 @@ export function initSolveMode(initialPuzzle) {
     revealedMediaWrap: document.getElementById('revealedMediaWrap'),
     revealedPhoto: document.getElementById('revealedPhoto'),
     revealedVideo: document.getElementById('revealedVideo'),
+    revealedMediaLoading: document.getElementById('revealedMediaLoading'),
     revealedMessage: document.getElementById('revealedMessage'),
     closeBloomBtn: document.getElementById('closeBloomBtn'),
   };
@@ -129,7 +130,7 @@ export function initSolveMode(initialPuzzle) {
     els.guessHistory.classList.remove('hidden');
 
     if (isFullyCorrect(feedback)) {
-      winGame();
+      winGame(els);
       return;
     }
 
@@ -159,51 +160,64 @@ export function initSolveMode(initialPuzzle) {
     els.guessHistoryList.prepend(row);
   }
 
-  function winGame() {
+  function winGame(elsRef = els) {
     gameOver = true;
-    els.submitGuessBtn.disabled = true;
+    elsRef.submitGuessBtn.disabled = true;
 
     const secretMedia = resolveSecretMedia(puzzle);
     const hasMessage = Boolean(puzzle.message?.trim());
     const defaultMsg = '（创作者没有留下密语，但你看穿了整座花园）';
 
-    els.revealedPhoto.classList.add('hidden');
-    els.revealedVideo.classList.add('hidden');
-    els.revealedMediaWrap.classList.add('hidden');
-    els.revealedMessage.classList.add('hidden');
-    els.revealedVideo.pause();
-    els.revealedVideo.src = '';
+    elsRef.revealedPhoto.classList.add('hidden');
+    elsRef.revealedVideo.classList.add('hidden');
+    elsRef.revealedMediaWrap.classList.add('hidden');
+    elsRef.revealedMessage.classList.add('hidden');
+    elsRef.revealedMediaLoading?.classList.add('hidden');
+    elsRef.revealedVideo.pause();
+    elsRef.revealedVideo.src = '';
 
     if (secretMedia) {
-      els.revealedMediaWrap.classList.remove('hidden');
+      elsRef.revealedMediaWrap.classList.remove('hidden');
       if (secretMedia.type === 'video') {
-        els.revealedVideo.src = secretMedia.data;
-        els.revealedVideo.classList.remove('hidden');
-        els.revealedVideo.play().catch(() => {});
+        elsRef.revealedVideo.src = secretMedia.data;
+        elsRef.revealedVideo.classList.remove('hidden');
+        elsRef.revealedVideo.play().catch(() => {});
+      } else if (secretMedia.external || /^https?:\/\//i.test(secretMedia.data)) {
+        elsRef.revealedMediaLoading?.classList.remove('hidden');
+        elsRef.revealedPhoto.onload = () => {
+          elsRef.revealedMediaLoading?.classList.add('hidden');
+        };
+        elsRef.revealedPhoto.onerror = () => {
+          elsRef.revealedMediaLoading?.classList.add('hidden');
+          elsRef.revealedMessage.textContent = '云端照片加载失败，链接可能已过期（24 小时）';
+          elsRef.revealedMessage.classList.remove('hidden');
+        };
+        elsRef.revealedPhoto.src = secretMedia.data;
+        elsRef.revealedPhoto.classList.remove('hidden');
       } else {
-        els.revealedPhoto.src = secretMedia.data;
-        els.revealedPhoto.classList.remove('hidden');
+        elsRef.revealedPhoto.src = secretMedia.data;
+        elsRef.revealedPhoto.classList.remove('hidden');
       }
     }
 
     if (hasMessage) {
-      els.revealedMessage.textContent = puzzle.message;
-      els.revealedMessage.classList.remove('hidden');
+      elsRef.revealedMessage.textContent = puzzle.message;
+      elsRef.revealedMessage.classList.remove('hidden');
     } else if (puzzle.mediaRef && !secretMedia) {
-      els.revealedMessage.textContent =
+      elsRef.revealedMessage.textContent =
         '照片/视频密语未能加载（可能使用了本机存储方案，需在创作者设备上打开）';
-      els.revealedMessage.classList.remove('hidden');
+      elsRef.revealedMessage.classList.remove('hidden');
     } else if (!secretMedia) {
-      els.revealedMessage.textContent = defaultMsg;
-      els.revealedMessage.classList.remove('hidden');
+      elsRef.revealedMessage.textContent = defaultMsg;
+      elsRef.revealedMessage.classList.remove('hidden');
     }
 
-    els.bloomFlower.innerHTML = puzzle.cells
+    elsRef.bloomFlower.innerHTML = puzzle.cells
       .map((cell) => generateFlowerSvg(cell, { size: 56, showEmoji: true, bloom: true }))
       .join('');
-    els.bloomOverlay.classList.remove('hidden');
+    elsRef.bloomOverlay.classList.remove('hidden');
     requestAnimationFrame(() => {
-      els.bloomOverlay.classList.add('active');
+      elsRef.bloomOverlay.classList.add('active');
     });
   }
 

@@ -907,6 +907,18 @@ input[type="text"]:focus {
   animation: media-fade-in 1.2s ease 0.8s both;
 }
 
+.revealed-media-loading {
+  margin: 0 0 0.75rem;
+  font-size: 0.95rem;
+  color: var(--text-muted);
+}
+
+.hosting-hint {
+  margin-top: 0.35rem;
+  font-size: 0.85rem;
+  opacity: 0.85;
+}
+
 @keyframes media-fade-in {
   from {
     opacity: 0;

@@ -58,6 +58,7 @@
           </div>
           <div id="mediaSecretPanel" class="secret-panel hidden">
             <p class="hint camera-hint">拍下你想藏进花里的秘密 · 生成链接时会按分享模式自动优化画质</p>
+            <p class="hint hosting-hint">照片较大时将上传至临时图床（24 小时），链接更短便于分享</p>
             <div class="media-type-toggle">
               <button type="button" class="media-type-btn active" data-type="photo">照片</button>
               <button type="button" class="media-type-btn" data-type="video">短视频（3秒）</button>
@@ -197,6 +198,7 @@
       <div id="bloomFlower" class="bloom-flower"></div>
       <h2 class="bloom-title">密语绽放</h2>
       <div id="revealedMediaWrap" class="revealed-media-wrap hidden">
+        <p id="revealedMediaLoading" class="revealed-media-loading hidden">正在加载照片…</p>
         <img id="revealedPhoto" class="revealed-media hidden" alt="揭晓的照片密语" decoding="async">
         <video id="revealedVideo" class="revealed-media hidden" playsinline controls autoplay></video>
       </div>

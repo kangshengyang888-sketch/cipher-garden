@@ -29,6 +29,8 @@ import {
   readFileAsPhoto,
   recordVideoFromStream,
   stopStream,
+  uploadPhotoToHost,
+  dataUrlToBlob,
 } from './media.js';
 import { countPlanted } from './puzzle.js';
 
@@ -367,14 +369,14 @@ function getShareMode(els) {
   return els.shareModeHd?.checked ? 'hd' : 'standard';
 }
 
-function makePhotoUrlMeasurer(state, els, mode = null) {
+function makePhotoUrlMeasurer(state, els, mode = null, externalPhotoUrl = null) {
   const shareMode = mode ?? getShareMode(els);
   const message = getMessageForEncode(state, els);
   const cells = state.cells;
   const limit = getShareUrlLimit(shareMode);
   return (photoDataUrl) => {
-    const media = { type: 'photo', data: photoDataUrl };
-    const { encoded } = encodePuzzle(cells, message, media);
+    const media = externalPhotoUrl ? null : { type: 'photo', data: photoDataUrl };
+    const { encoded } = encodePuzzle(cells, message, media, { externalPhotoUrl });
     const url = buildShareUrl(encoded);
     return { length: url.length, fits: url.length <= limit, limit };
   };
@@ -391,6 +393,10 @@ async function generateShareLink(state, els) {
   const urlLimit = getShareUrlLimit(shareMode);
   const message = getMessageForEncode(state, els);
   let secretMedia = getMediaForEncode(state);
+  let externalPhotoUrl = null;
+  let photoEmbedMode = null;
+  let uploadFailed = false;
+  let lengthWarning = null;
 
   if (state.secretMode !== SECRET_MODES.TEXT && !secretMedia) {
     alert('请先拍摄或选择一张照片/视频作为密语');
@@ -435,57 +441,87 @@ async function generateShareLink(state, els) {
         }
       }
 
-      secretMedia = { type: 'photo', data: result.dataUrl };
-      state.secretMedia = secretMedia;
-      saveDraft(state, els);
       if (!result.fits) {
-        setCompressStatus(els, '');
-        const modeHint = shareMode === 'standard'
-          ? '请换用更小的照片、仅保留文字密语，或切换到「高清扫码」模式。'
-          : '请换用更小的照片，或仅使用文字密语。';
-        alert(
-          `照片压缩后链接仍过长（${result.urlLength} 字符，上限 ${urlLimit}）。\n\n${modeHint}`,
-        );
-        return;
+        setCompressStatus(els, '正在上传照片…');
+        try {
+          const blob = await dataUrlToBlob(result.dataUrl);
+          externalPhotoUrl = await uploadPhotoToHost(blob);
+          photoEmbedMode = 'external';
+          const externalMeasure = makePhotoUrlMeasurer(state, els, shareMode, externalPhotoUrl);
+          const externalLen = externalMeasure(result.dataUrl).length;
+          result = { ...result, urlLength: externalLen, fits: externalLen <= urlLimit };
+        } catch (err) {
+          console.warn('Photo upload failed', err);
+          uploadFailed = true;
+          photoEmbedMode = 'inline-fallback';
+          lengthWarning =
+            '照片上传失败，已使用最大压缩嵌入链接；二维码可能无法扫描，请换更小照片后重试。';
+        }
+      } else {
+        photoEmbedMode = 'inline';
+        secretMedia = { type: 'photo', data: result.dataUrl };
+        state.secretMedia = secretMedia;
+        saveDraft(state, els);
       }
-      const effectiveLimit = hdFallbackUsed ? SHARE_URL_STANDARD_LENGTH : urlLimit;
-      const bytes = estimateDataUrlBytes(result.dataUrl);
-      const statusMsg = hdFallbackUsed
-        ? `照片已进一步压缩以生成可扫描链接（约 ${formatBytes(bytes)}，链接约 ${result.urlLength} 字符）`
-        : `照片已优化（约 ${formatBytes(bytes)}，链接约 ${result.urlLength} 字符，上限 ${effectiveLimit}）`;
-      setCompressStatus(els, statusMsg);
+
       state._hdFallbackUsed = hdFallbackUsed;
+      state._photoEmbedMode = photoEmbedMode;
+
+      if (photoEmbedMode === 'external') {
+        const externalMeasure = makePhotoUrlMeasurer(state, els, shareMode, externalPhotoUrl);
+        const extLen = externalMeasure(result.dataUrl).length;
+        setCompressStatus(
+          els,
+          `照片已上传云端（链接更短，约 ${extLen} 字符，24 小时内有效）`,
+        );
+      } else if (photoEmbedMode === 'inline') {
+        const effectiveLimit = hdFallbackUsed ? SHARE_URL_STANDARD_LENGTH : urlLimit;
+        const bytes = estimateDataUrlBytes(result.dataUrl);
+        const statusMsg = hdFallbackUsed
+          ? `照片已嵌入链接（约 ${formatBytes(bytes)}，链接约 ${result.urlLength} 字符）`
+          : `照片已嵌入链接（约 ${formatBytes(bytes)}，链接约 ${result.urlLength} 字符，上限 ${effectiveLimit}）`;
+        setCompressStatus(els, statusMsg);
+      } else if (uploadFailed) {
+        const bytes = estimateDataUrlBytes(result.dataUrl);
+        setCompressStatus(
+          els,
+          `照片已嵌入链接（约 ${formatBytes(bytes)}，链接约 ${result.urlLength} 字符，上传失败）`,
+        );
+        secretMedia = { type: 'photo', data: result.dataUrl };
+        state.secretMedia = secretMedia;
+        saveDraft(state, els);
+      }
     } finally {
       els.generateLinkBtn.disabled = false;
     }
   } else {
     state._hdFallbackUsed = false;
+    state._photoEmbedMode = null;
   }
 
-  const result = encodePuzzle(state.cells, message, secretMedia);
-  if (result.usedRef) {
-    alert('无法生成可跨设备分享的链接。请压缩照片或改用文字密语。');
-    return;
-  }
+  const encodeOptions = externalPhotoUrl ? { externalPhotoUrl } : {};
+  const mediaForEncode = externalPhotoUrl ? null : secretMedia;
+  const result = encodePuzzle(state.cells, message, mediaForEncode, encodeOptions);
 
   const url = buildShareUrl(result.encoded);
   const effectiveLimit = state._hdFallbackUsed ? SHARE_URL_STANDARD_LENGTH : urlLimit;
   const assessment = assessUrlLength(url, effectiveLimit);
 
   if (secretMedia?.type === 'video' && assessment.tooLong) {
-    alert(
-      `视频密语链接过长（${assessment.length} 字符，上限 ${urlLimit}）。\n\n` +
-      '无服务器环境下，视频无法嵌入可分享的短链接。请改用照片密语。',
-    );
-    return;
+    lengthWarning =
+      lengthWarning ||
+      `视频密语链接较长（${assessment.length} 字符）。二维码可能无法扫描，请改用照片密语。`;
+  } else if (assessment.tooLong && !externalPhotoUrl) {
+    lengthWarning =
+      lengthWarning ||
+      `链接较长（${assessment.length} 字符，上限 ${urlLimit}）。请优先用二维码分享。`;
   }
 
-  if (assessment.tooLong) {
-    alert(`链接过长（${assessment.length} 字符，上限 ${urlLimit}）。请使用更小的照片或更短的文字密语。`);
-    return;
-  }
-
-  showShareWarnings(els, assessment, shareMode, state._hdFallbackUsed);
+  showShareWarnings(els, assessment, shareMode, state._hdFallbackUsed, {
+    photoEmbedMode: state._photoEmbedMode,
+    lengthWarning,
+    uploadFailed,
+  });
 
   els.shareUrl.value = url;
   els.shareResult.classList.remove('hidden');
@@ -545,7 +581,8 @@ async function renderShareQr(els, url, urlLimit) {
   });
 }
 
-function showShareWarnings(els, assessment, shareMode, hdFallbackUsed = false) {
+function showShareWarnings(els, assessment, shareMode, hdFallbackUsed = false, extras = {}) {
+  const { photoEmbedMode, lengthWarning, uploadFailed } = extras;
   els.shareLengthHint?.classList.add('hidden');
   els.localhostWarning.classList.add('hidden');
 
@@ -567,11 +604,27 @@ function showShareWarnings(els, assessment, shareMode, hdFallbackUsed = false) {
     }
   }
 
+  if (photoEmbedMode === 'external') {
+    warnings.push(
+      `照片已上传云端（链接 ${assessment.length} 字符，24 小时有效）。请用上方二维码分享。`,
+    );
+  } else if (photoEmbedMode === 'inline') {
+    warnings.push(`照片已嵌入链接（${assessment.length} 字符）。`);
+  }
+
+  if (uploadFailed) {
+    warnings.push('照片上传失败，已改用嵌入链接；若二维码无法扫描请换更小照片。');
+  }
+
+  if (lengthWarning) {
+    warnings.push(lengthWarning);
+  }
+
   if (hdFallbackUsed) {
     warnings.push(
       `照片已进一步压缩以生成可扫描链接（${assessment.length} 字符）。请用上方二维码分享。`,
     );
-  } else if (shareMode === 'hd') {
+  } else if (shareMode === 'hd' && photoEmbedMode !== 'external') {
     warnings.push(
       `高清扫码：链接 ${assessment.length} 字符（上限 ${SHARE_URL_HD_LENGTH}）。` +
       '请用上方二维码分享，勿复制到微信聊天。',
@@ -581,7 +634,7 @@ function showShareWarnings(els, assessment, shareMode, hdFallbackUsed = false) {
       `链接 ${assessment.length} 字符，超过微信聊天粘贴上限（约 ${SHARE_URL_SAFE_LENGTH}）。` +
       '请优先使用上方二维码分享。',
     );
-  } else {
+  } else if (!photoEmbedMode) {
     warnings.push(
       `微信分享：链接 ${assessment.length} 字符（上限 ${SHARE_URL_SAFE_LENGTH}）。` +
       '推荐用上方二维码分享；短链接也可复制到微信聊天。',

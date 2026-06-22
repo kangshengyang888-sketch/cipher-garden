@@ -275,13 +275,47 @@ export function loadMediaRef(ref) {
   }
 }
 
+export function stripDataUrlPrefix(dataUrl) {
+  if (!dataUrl) return '';
+  if (/^https?:\/\//i.test(dataUrl)) return dataUrl;
+  const comma = dataUrl.indexOf(',');
+  return comma >= 0 ? dataUrl.slice(comma + 1) : dataUrl;
+}
+
+export function inferImageMime(raw) {
+  if (raw.startsWith('/9j/')) return 'image/jpeg';
+  if (raw.startsWith('UklGR')) return 'image/webp';
+  if (raw.startsWith('iVBOR')) return 'image/png';
+  return 'image/jpeg';
+}
+
+export function restoreDataUrlFromRaw(raw, typeChar = 'p') {
+  if (!raw) return '';
+  if (raw.startsWith('data:') || /^https?:\/\//i.test(raw)) return raw;
+  if (typeChar === 'v') {
+    return `data:video/webm;base64,${raw}`;
+  }
+  return `data:${inferImageMime(raw)};base64,${raw}`;
+}
+
 export function normalizeSecretMedia(media) {
   if (!media) return null;
-  if (media.type && media.data) return media;
+  if (media.type && media.data) {
+    if (media.external || /^https?:\/\//i.test(media.data)) {
+      return { type: media.type, data: media.data, external: true };
+    }
+    return media;
+  }
   if (media.t && media.d) {
+    const data = typeof media.d === 'string'
+      && !media.d.startsWith('data:')
+      && !/^https?:\/\//i.test(media.d)
+      ? restoreDataUrlFromRaw(media.d, media.t)
+      : media.d;
     return {
       type: media.t === 'v' ? 'video' : 'photo',
-      data: media.d,
+      data,
+      external: /^https?:\/\//i.test(data),
     };
   }
   return null;
@@ -291,12 +325,39 @@ export function compactSecretMedia(media) {
   if (!media) return null;
   return {
     t: media.type === 'video' ? 'v' : 'p',
-    d: media.data,
+    d: stripDataUrlPrefix(media.data),
   };
+}
+
+export function dataUrlToBlob(dataUrl) {
+  return fetch(dataUrl).then((res) => res.blob());
+}
+
+/** Upload photo to litterbox.catbox.moe (24h temporary hosting, browser CORS OK). */
+export async function uploadPhotoToHost(blob) {
+  const fd = new FormData();
+  fd.append('reqtype', 'fileupload');
+  fd.append('time', '24h');
+  fd.append('fileToUpload', blob, 'secret.jpg');
+  const res = await fetch('https://litterbox.catbox.moe/resources/internals/upload.php', {
+    method: 'POST',
+    body: fd,
+  });
+  if (!res.ok) {
+    throw new Error(`上传失败 (${res.status})`);
+  }
+  const url = (await res.text()).trim();
+  if (!/^https?:\/\//i.test(url)) {
+    throw new Error('上传失败：未返回有效链接');
+  }
+  return url;
 }
 
 export function resolveSecretMedia(puzzle) {
   if (puzzle.secretMedia) return normalizeSecretMedia(puzzle.secretMedia);
+  if (puzzle.externalPhotoUrl) {
+    return normalizeSecretMedia({ type: 'photo', data: puzzle.externalPhotoUrl, external: true });
+  }
   if (puzzle.mediaRef) return loadMediaRef(puzzle.mediaRef);
   return null;
 }
