@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>异步密语花园 · 作品说明</title>
+  <style>
+    @page {
+      size: A4;
+      margin: 22mm 20mm 24mm;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+
+    html {
+      font-size: 11pt;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+      color: #1a2e1a;
+      line-height: 1.75;
+      background: #fafcf8;
+    }
+
+    .page {
+      max-width: 170mm;
+      margin: 0 auto;
+      padding: 12mm 0 8mm;
+    }
+
+    /* Decorative header */
+    .doc-header {
+      position: relative;
+      padding: 18px 22px 20px;
+      margin-bottom: 28px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #e8f5e3 0%, #f4faf0 45%, #eef8ea 100%);
+      border: 1px solid #c5ddbc;
+      overflow: hidden;
+    }
+
+    .doc-header::before {
+      content: "";
+      position: absolute;
+      top: -30px;
+      right: -20px;
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(120, 180, 100, 0.18) 0%, transparent 70%);
+    }
+
+    .doc-header::after {
+      content: "🌿 🌸 🌿";
+      position: absolute;
+      bottom: 8px;
+      right: 18px;
+      font-size: 0.85rem;
+      letter-spacing: 0.3em;
+      opacity: 0.45;
+    }
+
+    .doc-header .subtitle {
+      margin: 0 0 4px;
+      font-size: 0.78rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #4a7a42;
+      font-weight: 600;
+    }
+
+    .doc-header h1 {
+      margin: 0 0 6px;
+      font-size: 1.65rem;
+      font-weight: 700;
+      color: #1f4d1a;
+      letter-spacing: 0.04em;
+      line-height: 1.3;
+    }
+
+    .doc-header .en-title {
+      margin: 0;
+      font-size: 0.88rem;
+      color: #5a7a52;
+      font-style: italic;
+    }
+
+    .author-line {
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(90, 140, 70, 0.25);
+      font-size: 0.88rem;
+      color: #3d5c38;
+    }
+
+    /* Sections */
+    section {
+      margin-bottom: 22px;
+      page-break-inside: avoid;
+    }
+
+    h2 {
+      margin: 0 0 10px;
+      padding-bottom: 6px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #2d5a28;
+      border-bottom: 2px solid #b8d4ae;
+      letter-spacing: 0.06em;
+    }
+
+    p {
+      margin: 0 0 10px;
+      text-align: justify;
+      text-justify: inter-ideograph;
+    }
+
+    .lead {
+      font-size: 1.02rem;
+      color: #243824;
+      font-weight: 500;
+      line-height: 1.85;
+    }
+
+    ul, ol {
+      margin: 0 0 10px;
+      padding-left: 1.4em;
+    }
+
+    li {
+      margin-bottom: 5px;
+    }
+
+    li::marker {
+      color: #5a9a4a;
+    }
+
+    .screenshot-placeholder {
+      margin: 12px 0;
+      padding: 28px 20px;
+      text-align: center;
+      border: 1.5px dashed #a8c89e;
+      border-radius: 8px;
+      background: #f2f9ef;
+      color: #4a6e42;
+      font-size: 0.92rem;
+    }
+
+    .screenshot-placeholder .icon {
+      display: block;
+      font-size: 1.8rem;
+      margin-bottom: 8px;
+      opacity: 0.7;
+    }
+
+    a {
+      color: #2d6b24;
+      text-decoration: none;
+      border-bottom: 1px dotted #7ab06e;
+      word-break: break-all;
+    }
+
+    .experience-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-top: 8px;
+    }
+
+    .experience-card {
+      padding: 14px 16px;
+      border-radius: 8px;
+      background: #f0f7ec;
+      border: 1px solid #c8dfc0;
+    }
+
+    .experience-card h3 {
+      margin: 0 0 8px;
+      font-size: 0.95rem;
+      color: #2d5a28;
+    }
+
+    .experience-card p {
+      margin: 0;
+      font-size: 0.9rem;
+      text-align: left;
+    }
+
+    .experience-card code {
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 0.82rem;
+      background: rgba(255, 255, 255, 0.7);
+      padding: 1px 5px;
+      border-radius: 3px;
+    }
+
+    .tech-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 10px 0 12px;
+    }
+
+    .tech-tag {
+      display: inline-block;
+      padding: 3px 10px;
+      font-size: 0.82rem;
+      background: #e4f0df;
+      border: 1px solid #b5d4a8;
+      border-radius: 999px;
+      color: #2f5530;
+    }
+
+    .footer-author {
+      margin-top: 32px;
+      padding-top: 16px;
+      border-top: 2px solid #c5ddbc;
+      text-align: center;
+      font-size: 0.95rem;
+      color: #3d5c38;
+    }
+
+    .footer-author strong {
+      color: #1f4d1a;
+    }
+
+    @media print {
+      body {
+        background: #fff;
+      }
+
+      .page {
+        padding: 0;
+        max-width: none;
+      }
+
+      .experience-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="doc-header">
+      <p class="subtitle">互动艺术作品 · 作品说明</p>
+      <h1>异步密语花园</h1>
+      <p class="en-title">Cipher Garden</p>
+      <p class="author-line">作者：康升阳 · 上海视觉艺术学院 23 级时尚设计与传播专业</p>
+    </header>
+
+    <section id="intro">
+      <h2>一句话介绍</h2>
+      <p class="lead">这是一个让朋友与创作者通过种花、解谜、扫码分享，体验好奇、期待与揭晓惊喜的网页互动艺术作品。</p>
+    </section>
+
+    <section id="screenshots">
+      <h2>作品截图 / GIF</h2>
+      <div class="screenshot-placeholder">
+        <span class="icon">🌸</span>
+        占位说明：解谜成功后花朵绽放、照片密语淡入的截图
+      </div>
+      <p>线上体验：<a href="https://kangshengyang888-sketch.github.io/cipher-garden/">https://kangshengyang888-sketch.github.io/cipher-garden/</a></p>
+    </section>
+
+    <section id="experience">
+      <h2>如何体验</h2>
+      <div class="experience-grid">
+        <div class="experience-card">
+          <h3>方式一 · 在线体验</h3>
+          <p>在浏览器中打开 GitHub Pages 地址，无需安装任何软件，即可创作或解谜花园。</p>
+        </div>
+        <div class="experience-card">
+          <h3>方式二 · 本地运行</h3>
+          <p>下载项目后双击 <code>start.bat</code>，自动启动本地 HTTP 服务并打开浏览器。因使用 ES Module，不可直接双击 <code>index.html</code> 打开。</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="interaction">
+      <h2>交互说明</h2>
+      <ul>
+        <li><strong>创作花园：</strong>在 5×5 花圃中选择 emoji、旋转角度（0°/90°/180°/270°）与花色，点击格子种植；再次点击相同组合可清除。</li>
+        <li><strong>密语类型：</strong>支持文字密语、照片密语（相机拍摄或相册导入）、文字+照片组合；可选录制最长 3 秒的短视频密语。</li>
+        <li><strong>分享传播：</strong>生成分享链接后，可复制文本发给好友，或使用「微信扫码打开」二维码——扫一扫即可在内置浏览器中打开完整谜题。</li>
+        <li><strong>解谜花园：</strong>打开分享链接后，观察目标花圃（parametric SVG 花朵，不显示 emoji 答案），在猜测区为每格选择 emoji / 旋转 / 花色。</li>
+        <li><strong>Wordle 式反馈：</strong>共 3 次猜测机会，每格反馈「完全匹配」「emoji 对但旋转/色错」「emoji 在别格」或「不匹配」。</li>
+        <li><strong>揭晓时刻：</strong>全部猜对后触发绽放动画，文字、照片或短视频密语淡入揭晓——完成从好奇到惊喜的仪式性体验。</li>
+        <li><strong>草稿保存：</strong>创作过程中的花园状态自动保存至浏览器 localStorage，刷新页面不丢失。</li>
+      </ul>
+    </section>
+
+    <section id="concept">
+      <h2>艺术理念</h2>
+      <p>「异步密语花园」将<strong>编码</strong>、<strong>社交分享</strong>与<strong>揭晓仪式</strong>编织为一次完整的情感传递体验。创作者用 emoji、旋转与花色在 5×5 花圃中「种植」视觉密码，将文字、照片或短视频藏入花朵深处——密语不会立刻呈现，而是等待解谜者通过观察、记忆与推理逐步逼近真相。分享链接或二维码成为跨越时空的「花种」：发送者与接收者不必同时在线，好奇与期待在异步的等待中慢慢生长。三次猜测机会与 Wordle 式反馈，既保留游戏的挑战感，又让揭晓前的悬念层层累积；当最后一格对齐、花朵绽放、密语淡入的那一刻，解谜从智力活动升华为一种小型仪式——关于信任、用心与被看见的温柔回响。作品以纯前端网页为载体，让数字时代的秘密交换回归手作般的温度与花园般的诗意。</p>
+    </section>
+
+    <section id="tech">
+      <h2>技术实现</h2>
+      <div class="tech-tags">
+        <span class="tech-tag">HTML / CSS / JavaScript</span>
+        <span class="tech-tag">ES Modules</span>
+        <span class="tech-tag">lz-string 压缩</span>
+        <span class="tech-tag">QR 二维码</span>
+        <span class="tech-tag">相机 API</span>
+        <span class="tech-tag">Catbox 图床</span>
+        <span class="tech-tag">Parametric SVG</span>
+      </div>
+      <ul>
+        <li><strong>纯前端架构：</strong>Vanilla HTML / CSS / JavaScript（ES Modules），无后端依赖，谜题状态压缩编码在 URL 哈希段中，便于链接分享。</li>
+        <li><strong>数据压缩：</strong>使用 lz-string 库对谜题 JSON 进行压缩，v2 紧凑格式（短键名、裸 base64）比旧版多容纳约 15–30% 照片数据。</li>
+        <li><strong>二维码分享：</strong>集成 qrcode 库生成微信可扫二维码；支持「微信分享」（≤2048 字符）与「高清扫码」（≤3100 字符）两种模式。</li>
+        <li><strong>相机与媒体：</strong>调用浏览器 MediaDevices API 实现拍照与 3 秒短视频录制；照片导入时轻度压缩（最长边约 1920px），生成链接时按分享模式进一步优化。</li>
+        <li><strong>云端托管：</strong>大照片无法嵌入链接时，自动上传至 litterbox.catbox.moe 临时图床（24 小时有效），链接中仅保存短 URL，确保二维码始终可扫。</li>
+        <li><strong>视觉生成：</strong>Parametric SVG 花朵由 emoji + 旋转 + 花色哈希推导花瓣数、形状与渐变，解谜界面只展示抽象花朵而非明文 emoji。</li>
+        <li><strong>解谜逻辑：</strong>Wordle 式逐格反馈判定（完全匹配 / emoji 对旋转色错 / emoji 在别格 / 不匹配），三次机会后揭晓或失败。</li>
+      </ul>
+    </section>
+
+    <section id="author">
+      <h2>作者</h2>
+      <p>康升阳 — 上海视觉艺术学院 23 级时尚设计与传播专业</p>
+    </section>
+
+    <footer class="footer-author">
+      <strong>异步密语花园 · Cipher Garden</strong><br>
+      康升阳 · 上海视觉艺术学院 · 2025
+    </footer>
+  </div>
+</body>
+</html>
