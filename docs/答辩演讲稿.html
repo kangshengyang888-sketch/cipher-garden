@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>异步密语花园 · 答辩演讲稿</title>
+  <style>
+    @page {
+      size: A4;
+      margin: 20mm 18mm 22mm;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+
+    html {
+      font-size: 13pt;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans SC", system-ui, sans-serif;
+      color: #1a2e1a;
+      line-height: 1.85;
+      background: #fafcf8;
+    }
+
+    .page {
+      max-width: 174mm;
+      margin: 0 auto;
+      padding: 10mm 0 6mm;
+    }
+
+    .doc-header {
+      position: relative;
+      padding: 20px 24px 22px;
+      margin-bottom: 26px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #e8f5e3 0%, #f4faf0 50%, #eef8ea 100%);
+      border: 1px solid #c5ddbc;
+      overflow: hidden;
+      text-align: center;
+    }
+
+    .doc-header::before {
+      content: "";
+      position: absolute;
+      top: -40px;
+      left: -30px;
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(120, 180, 100, 0.2) 0%, transparent 70%);
+    }
+
+    .doc-header::after {
+      content: "";
+      position: absolute;
+      bottom: -35px;
+      right: -25px;
+      width: 110px;
+      height: 110px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(180, 140, 200, 0.12) 0%, transparent 70%);
+    }
+
+    .doc-header .badge {
+      display: inline-block;
+      margin: 0 0 8px;
+      padding: 3px 14px;
+      font-size: 0.72rem;
+      letter-spacing: 0.14em;
+      color: #4a7a42;
+      font-weight: 600;
+      background: rgba(255, 255, 255, 0.55);
+      border-radius: 999px;
+      border: 1px solid rgba(90, 140, 70, 0.25);
+    }
+
+    .doc-header h1 {
+      position: relative;
+      margin: 0 0 6px;
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: #1f4d1a;
+      letter-spacing: 0.06em;
+      line-height: 1.35;
+    }
+
+    .doc-header .en-title {
+      position: relative;
+      margin: 0;
+      font-size: 0.92rem;
+      color: #5a7a52;
+      font-style: italic;
+      letter-spacing: 0.04em;
+    }
+
+    .minute-block {
+      margin-bottom: 28px;
+      page-break-inside: avoid;
+    }
+
+    .minute-label {
+      margin: 0 0 14px;
+      padding: 8px 16px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: 0.08em;
+      background: linear-gradient(90deg, #3d7a34 0%, #5a9a4a 100%);
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(45, 90, 40, 0.15);
+    }
+
+    .speech-line {
+      margin: 0 0 16px;
+      padding: 14px 18px 14px 20px;
+      font-size: 1.12rem;
+      font-weight: 500;
+      line-height: 1.9;
+      text-align: justify;
+      text-justify: inter-ideograph;
+      color: #243824;
+      background: #f4faf0;
+      border-left: 4px solid #7ab06e;
+      border-radius: 0 10px 10px 0;
+      box-shadow: 0 1px 4px rgba(45, 90, 40, 0.06);
+    }
+
+    .speech-line strong {
+      color: #1f4d1a;
+      font-weight: 700;
+    }
+
+    .demo-block {
+      margin: 18px 0 6px;
+      padding: 16px 20px;
+      border-radius: 10px;
+      background: #eef8ea;
+      border: 1.5px dashed #a8c89e;
+    }
+
+    .demo-block .demo-tag {
+      display: inline-block;
+      margin-bottom: 10px;
+      padding: 4px 12px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      color: #2d5a28;
+      background: rgba(255, 255, 255, 0.7);
+      border-radius: 6px;
+      border: 1px solid #c5ddbc;
+    }
+
+    .demo-block ul {
+      margin: 0;
+      padding-left: 1.3em;
+      font-size: 0.98rem;
+      color: #3d5c38;
+      line-height: 1.75;
+    }
+
+    .demo-block li {
+      margin-bottom: 4px;
+    }
+
+    .closing-line {
+      margin-top: 8px;
+      padding: 16px 20px;
+      text-align: center;
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: #1f4d1a;
+      letter-spacing: 0.04em;
+      background: linear-gradient(135deg, #e8f5e3 0%, #f4faf0 100%);
+      border: 1px solid #c5ddbc;
+      border-radius: 10px;
+    }
+
+    .footer-meta {
+      margin-top: 36px;
+      padding-top: 18px;
+      border-top: 2px solid #c5ddbc;
+      text-align: center;
+      font-size: 0.95rem;
+      color: #3d5c38;
+      line-height: 1.8;
+    }
+
+    .footer-meta strong {
+      color: #1f4d1a;
+      font-size: 1rem;
+    }
+
+    .footer-meta a {
+      color: #2d6b24;
+      text-decoration: none;
+      border-bottom: 1px dotted #7ab06e;
+      word-break: break-all;
+    }
+
+    @media print {
+      body {
+        background: #fff;
+      }
+
+      .page {
+        padding: 0;
+        max-width: none;
+      }
+
+      .minute-label {
+        box-shadow: none;
+      }
+
+      .speech-line {
+        box-shadow: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="doc-header">
+      <p class="badge">答辩演讲稿 · 约 3 分钟</p>
+      <h1>异步密语花园</h1>
+      <p class="en-title">Cipher Garden</p>
+    </header>
+
+    <section class="minute-block">
+      <p class="minute-label">第 1 分钟：我做了什么</p>
+      <p class="speech-line">「我的作品叫<strong>《异步密语花园》</strong>，是一个<strong>网页互动艺术作品</strong>——让朋友通过种花、解谜、扫码分享，在猜对之后才解锁隐藏密语的互动体验。」</p>
+      <p class="speech-line">「创作者在 5×5 花圃里选择 emoji、旋转角度和花色种花，可以藏一句文字，也可以拍一张照片当密语。生成链接或二维码发给朋友后，对方看不到答案，只能根据花的形态去猜。猜对有 Wordle 式反馈，一共 3 次机会；全部猜对后，花朵会绽放，密语才会出现。」</p>
+      <div class="demo-block">
+        <span class="demo-tag">［现场演示 10 秒］</span>
+        <ul>
+          <li>快速种 2～3 格花 → 点「生成分享链接」→ 展示二维码</li>
+          <li>或切换到解谜页，提交一次猜测，展示反馈颜色</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="minute-block">
+      <p class="minute-label">第 2 分钟：为什么做 + 怎么做</p>
+      <p class="speech-line">「我想表达的是：<strong>在社交媒体里，表达往往太直接了；我想把『直接告诉』变成『猜对了才看见』</strong>——秘密被编码、传递、解锁的过程，本身就有仪式感和情绪张力。」</p>
+      <p class="speech-line">「用户通过<strong>种花、藏密语、扫码分享、解谜猜测</strong>互动，作品会<strong>生成一座独一无二的 parametric SVG 花圃</strong>，给出 Wordle 式逐格反馈，并在全部猜对后<strong>绽放揭晓秘密</strong>。」</p>
+      <p class="speech-line">「技术上我使用了 <strong>HTML、CSS、JavaScript</strong>，纯前端部署在 <strong>GitHub Pages</strong>；谜题数据用 <strong>lz-string</strong> 压缩嵌入 URL，配合 <strong>二维码</strong>方便微信扫码；照片密语用到 <strong>摄像头 API</strong>，大图则自动上传<strong>临时图床</strong>以保证链接可分享。」</p>
+    </section>
+
+    <section class="minute-block">
+      <p class="minute-label">第 3 分钟：最满意 + 未来计划</p>
+      <p class="speech-line">「我最满意的是<strong>『揭晓瞬间』</strong>——朋友猜了几次、终于全对的那一刻，花圃绽放、照片或文字缓缓出现，比直接发一张图或一句话更有记忆点。」</p>
+      <p class="speech-line">「如果继续迭代，我会做一个<strong>公开谜题墙</strong>让大家互相挑战，加入更多<strong>音视频密语</strong>形式，也会优化<strong>手机端</strong>的操作体验。」</p>
+      <p class="closing-line">「谢谢，欢迎体验。」</p>
+    </section>
+
+    <footer class="footer-meta">
+      <strong>作者：康升阳</strong><br>
+      上海视觉艺术学院 23 级时尚设计与传播专业<br>
+      线上体验：<a href="https://kangshengyang888-sketch.github.io/cipher-garden/">https://kangshengyang888-sketch.github.io/cipher-garden/</a>
+    </footer>
+  </div>
+</body>
+</html>
