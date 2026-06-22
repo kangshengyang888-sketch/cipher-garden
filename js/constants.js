@@ -3,13 +3,16 @@ export const CELL_COUNT = GRID_SIZE * GRID_SIZE;
 export const MAX_GUESSES = 3;
 export const DRAFT_KEY = 'cipher-garden-draft';
 /**
- * Practical share URL length for messaging apps (WeChat, SMS, etc.).
- * Many apps truncate pasted URLs around 1024–2048 characters.
+ * WeChat chat paste limit — many apps truncate pasted URLs around 1024–2048 chars.
+ * Use QR codes for links longer than this.
  */
 export const SHARE_URL_SAFE_LENGTH = 2048;
 
-/** Optional HD share mode — longer links that may fail in messaging apps. */
-export const SHARE_URL_HD_LENGTH = 8000;
+/** Standard share mode — QR-optimized; fits in scannable QR codes with good photo quality. */
+export const SHARE_URL_QR_LENGTH = 12000;
+
+/** HD share mode — maximum quality for QR scan opens; too long for chat paste. */
+export const SHARE_URL_HD_LENGTH = 32000;
 
 /** Absolute upper bound for inline URL embedding (browser limits). */
 export const MAX_URL_LENGTH = 64000;

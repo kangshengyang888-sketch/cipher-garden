@@ -3,6 +3,7 @@ import {
   DRAFT_KEY,
   EMOJIS,
   ROTATIONS,
+  SHARE_URL_SAFE_LENGTH,
   emptyCell,
   emptyGrid,
   getColor,
@@ -402,6 +403,7 @@ async function generateShareLink(state, els) {
         (dataUrl) => measureUrl(dataUrl).length,
         (msg) => setCompressStatus(els, msg),
         urlLimit,
+        shareMode,
       );
       secretMedia = { type: 'photo', data: result.dataUrl };
       state.secretMedia = secretMedia;
@@ -463,13 +465,15 @@ function renderShareQr(els, url) {
     return;
   }
 
+  const errorCorrectionLevel = url.length > 12000 ? 'L' : url.length > 6000 ? 'M' : 'M';
+
   QRCode.toCanvas(
     shareQrCanvas,
     url,
     {
-      width: 240,
+      width: 260,
       margin: 2,
-      errorCorrectionLevel: 'M',
+      errorCorrectionLevel,
       color: { dark: '#1a1a1a', light: '#ffffff' },
     },
     (err) => {
@@ -508,12 +512,17 @@ function showShareWarnings(els, assessment, shareMode) {
   if (shareMode === 'hd') {
     warnings.push(
       `高清模式：链接 ${assessment.length} 字符（上限 ${assessment.limit}）。` +
-      '微信等应用可能截断链接，建议改用「标准分享」。',
+      '推荐微信扫码打开，画质更好；复制到聊天可能被截断。',
+    );
+  } else if (assessment.length > SHARE_URL_SAFE_LENGTH) {
+    warnings.push(
+      `链接 ${assessment.length} 字符，超过微信聊天粘贴上限（约 ${SHARE_URL_SAFE_LENGTH}）。` +
+      '请优先使用下方二维码分享；若必须复制链接，请换更小照片。',
     );
   } else if (assessment.warning) {
     warnings.push(
       `链接 ${assessment.length} 字符，接近 ${assessment.limit} 字符上限。` +
-      '若在微信发送失败，请换用更小的照片。',
+      '若在微信发送失败，请换用更小的照片或切换到高清模式。',
     );
   }
 

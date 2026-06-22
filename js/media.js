@@ -1,12 +1,13 @@
 import {
   MEDIA_STORAGE_PREFIX,
   SHARE_URL_HD_LENGTH,
+  SHARE_URL_QR_LENGTH,
   SHARE_URL_SAFE_LENGTH,
 } from './constants.js';
 
-const PHOTO_MAX_DIM = 1400;
+const PHOTO_MAX_DIM = 1920;
 const PHOTO_MIN_DIM = 480;
-const PHOTO_QUALITY_HIGH = 0.85;
+const PHOTO_QUALITY_HIGH = 0.88;
 const PHOTO_QUALITY_LOW = 0.48;
 const VIDEO_MAX_MS = 3000;
 const VIDEO_BITRATE = 250000;
@@ -115,38 +116,67 @@ export async function compressPhoto(dataUrl, options = {}) {
   return encodeCanvas(canvas, quality);
 }
 
-const COMPRESS_STEPS = [
-  { maxDim: 1400, quality: 0.88 },
-  { maxDim: 1400, quality: 0.82 },
-  { maxDim: 1200, quality: 0.82 },
-  { maxDim: 1200, quality: 0.75 },
+/** Standard mode — QR-optimized ladder; stops above 480px / 0.48 when possible. */
+const COMPRESS_STEPS_QR = [
+  { maxDim: 1920, quality: 0.90 },
+  { maxDim: 1920, quality: 0.85 },
+  { maxDim: 1600, quality: 0.85 },
+  { maxDim: 1600, quality: 0.80 },
+  { maxDim: 1600, quality: 0.75 },
+  { maxDim: 1400, quality: 0.75 },
+  { maxDim: 1400, quality: 0.70 },
   { maxDim: 1200, quality: 0.68 },
-  { maxDim: 1000, quality: 0.68 },
-  { maxDim: 1000, quality: 0.60 },
-  { maxDim: 1000, quality: 0.55 },
-  { maxDim: 800, quality: 0.55 },
-  { maxDim: 800, quality: 0.48 },
-  { maxDim: 640, quality: 0.45 },
-  { maxDim: 640, quality: 0.38 },
+  { maxDim: 1000, quality: 0.62 },
+  { maxDim: 800, quality: 0.58 },
+  { maxDim: 640, quality: 0.52 },
   { maxDim: PHOTO_MIN_DIM, quality: PHOTO_QUALITY_LOW },
-  { maxDim: 400, quality: 0.32 },
-  { maxDim: 320, quality: 0.28 },
-  { maxDim: 256, quality: 0.24 },
-  { maxDim: 200, quality: 0.20 },
 ];
+
+/** HD mode — higher resolution and quality floor (≥ 0.60). */
+const COMPRESS_STEPS_HD = [
+  { maxDim: 1920, quality: 0.92 },
+  { maxDim: 1920, quality: 0.88 },
+  { maxDim: 1920, quality: 0.85 },
+  { maxDim: 1920, quality: 0.82 },
+  { maxDim: 1600, quality: 0.82 },
+  { maxDim: 1600, quality: 0.78 },
+  { maxDim: 1600, quality: 0.75 },
+  { maxDim: 1400, quality: 0.72 },
+  { maxDim: 1400, quality: 0.68 },
+  { maxDim: 1200, quality: 0.65 },
+  { maxDim: 1000, quality: 0.62 },
+  { maxDim: 800, quality: 0.60 },
+];
+
+function getCompressSteps(mode = 'standard') {
+  return mode === 'hd' ? COMPRESS_STEPS_HD : COMPRESS_STEPS_QR;
+}
 
 export function getShareUrlLimit(mode = 'standard') {
   if (mode === 'hd') return SHARE_URL_HD_LENGTH;
-  return SHARE_URL_SAFE_LENGTH;
+  return SHARE_URL_QR_LENGTH;
 }
 
-export async function compressPhotoForShare(dataUrl, measureUrlLength, onProgress, maxUrlLength = SHARE_URL_SAFE_LENGTH) {
-  let best = dataUrl;
-  let bestLen = measureUrlLength(dataUrl);
+export async function compressPhotoForShare(
+  dataUrl,
+  measureUrlLength,
+  onProgress,
+  maxUrlLength = SHARE_URL_QR_LENGTH,
+  mode = 'standard',
+) {
+  const steps = getCompressSteps(mode);
+  const initialLen = measureUrlLength(dataUrl);
 
-  for (let i = 0; i < COMPRESS_STEPS.length; i++) {
-    const step = COMPRESS_STEPS[i];
-    onProgress?.(`正在压缩… (${i + 1}/${COMPRESS_STEPS.length})`);
+  if (initialLen <= maxUrlLength) {
+    return { dataUrl, urlLength: initialLen, fits: true };
+  }
+
+  let best = dataUrl;
+  let bestLen = initialLen;
+
+  for (let i = 0; i < steps.length; i++) {
+    const step = steps[i];
+    onProgress?.(`正在压缩… (${i + 1}/${steps.length})`);
     const compressed = await compressPhoto(dataUrl, step);
     const len = measureUrlLength(compressed);
     best = compressed;
@@ -273,13 +303,14 @@ export function resolveSecretMedia(puzzle) {
   return null;
 }
 
-export function assessUrlLength(url, limit = SHARE_URL_SAFE_LENGTH) {
+export function assessUrlLength(url, limit = SHARE_URL_QR_LENGTH) {
   const len = url.length;
   return {
     length: len,
     limit,
     tooLong: len > limit,
     warning: len > limit * 0.85,
+    chatPasteRisk: len > SHARE_URL_SAFE_LENGTH,
   };
 }
 
@@ -288,5 +319,6 @@ export const PHOTO_COMPRESS_PARAMS = {
   minDim: PHOTO_MIN_DIM,
   qualityHigh: PHOTO_QUALITY_HIGH,
   qualityLow: PHOTO_QUALITY_LOW,
-  steps: COMPRESS_STEPS,
+  stepsQr: COMPRESS_STEPS_QR,
+  stepsHd: COMPRESS_STEPS_HD,
 };

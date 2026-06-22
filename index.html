@@ -57,7 +57,7 @@
             <textarea id="hiddenMessage" rows="2" maxlength="120" placeholder="写一句想对解谜者说的话…"></textarea>
           </div>
           <div id="mediaSecretPanel" class="secret-panel hidden">
-            <p class="hint camera-hint">拍下你想藏进花里的秘密 · 分享时会自动压缩以适合微信</p>
+            <p class="hint camera-hint">拍下你想藏进花里的秘密 · 生成链接时会按分享模式自动优化画质</p>
             <div class="media-type-toggle">
               <button type="button" class="media-type-btn active" data-type="photo">照片</button>
               <button type="button" class="media-type-btn" data-type="video">短视频（3秒）</button>
@@ -114,15 +114,15 @@
             <fieldset class="share-mode-toggle">
               <legend>分享模式</legend>
               <label class="share-mode-option">
-                <input type="radio" name="shareMode" id="shareModeStandard" value="standard" checked>
-                <span>标准分享（适合微信，≤2048 字符）</span>
+                <input type="radio" name="shareMode" id="shareModeStandard" value="standard">
+                <span>标准分享（适合复制到微信聊天，≤12000 字符 · 推荐扫码）</span>
               </label>
               <label class="share-mode-option">
-                <input type="radio" name="shareMode" id="shareModeHd" value="hd">
-                <span>高清模式（链接较长，可能无法在微信发送）</span>
+                <input type="radio" name="shareMode" id="shareModeHd" value="hd" checked>
+                <span>高清模式（适合扫码打开，≤32000 字符 · 画质更好）</span>
               </label>
             </fieldset>
-            <p class="hint share-hint">部署到 GitHub Pages 后，链接与二维码均指向线上地址（含 #puzzle=… 完整谜题数据）</p>
+            <p class="hint share-hint">标准分享适合复制到微信聊天；高清模式适合扫码打开，画质更好。部署到 GitHub Pages 后，链接与二维码均指向线上地址。</p>
             <button type="button" id="generateLinkBtn" class="btn btn-primary">生成分享链接</button>
             <p id="localhostWarning" class="url-warning url-warning-danger hidden"></p>
             <div id="shareResult" class="share-result hidden">
@@ -195,7 +195,7 @@
       <div id="bloomFlower" class="bloom-flower"></div>
       <h2 class="bloom-title">密语绽放</h2>
       <div id="revealedMediaWrap" class="revealed-media-wrap hidden">
-        <img id="revealedPhoto" class="revealed-media hidden" alt="揭晓的照片密语">
+        <img id="revealedPhoto" class="revealed-media hidden" alt="揭晓的照片密语" decoding="async">
         <video id="revealedVideo" class="revealed-media hidden" playsinline controls autoplay></video>
       </div>
       <p id="revealedMessage" class="revealed-message hidden"></p>

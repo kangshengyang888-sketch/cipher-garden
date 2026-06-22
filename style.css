@@ -897,7 +897,7 @@ input[type="text"]:focus {
 /* Bloom media reveal */
 .revealed-media-wrap {
   margin: 0 auto 1.25rem;
-  max-width: min(90vw, 520px);
+  max-width: min(90vw, 640px);
   animation: media-fade-in 1.2s ease 0.8s both;
 }
 
@@ -914,9 +914,10 @@ input[type="text"]:focus {
 
 .revealed-media {
   width: 100%;
-  max-height: 50vh;
+  max-height: 60vh;
   border-radius: 14px;
   object-fit: contain;
+  image-rendering: auto;
   box-shadow:
     0 8px 32px rgba(0, 0, 0, 0.4),
     0 0 40px var(--accent-glow);
