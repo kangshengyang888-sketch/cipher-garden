@@ -518,6 +518,12 @@ input[type="text"]:focus {
   border-radius: 8px;
 }
 
+.share-qr-error {
+  margin: 0.5rem 0 0;
+  font-size: 0.82rem;
+  color: #c75b7a;
+}
+
 .hidden {
   display: none !important;
 }

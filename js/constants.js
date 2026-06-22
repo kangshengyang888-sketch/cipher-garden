@@ -4,18 +4,21 @@ export const MAX_GUESSES = 3;
 export const DRAFT_KEY = 'cipher-garden-draft';
 /**
  * WeChat chat paste limit — many apps truncate pasted URLs around 1024–2048 chars.
- * Use QR codes for links longer than this.
+ * Prefer QR scan for sharing; warn when copying longer links.
  */
 export const SHARE_URL_SAFE_LENGTH = 2048;
 
-/** Standard share mode — QR-optimized; fits in scannable QR codes with good photo quality. */
-export const SHARE_URL_QR_LENGTH = 24000;
+/** 微信分享 — aggressive compression; fits WeChat chat paste and scannable QR. */
+export const SHARE_URL_STANDARD_LENGTH = 2048;
 
-/** HD share mode — maximum quality for QR scan opens; too long for chat paste. */
-export const SHARE_URL_HD_LENGTH = 64000;
+/** 高清扫码 — moderate compression; QR-only, better photo quality (~1200–2500 chars). */
+export const SHARE_URL_HD_LENGTH = 2500;
 
-/** Absolute upper bound for inline URL embedding (browser limits). */
-export const MAX_URL_LENGTH = 64000;
+/** @deprecated Use SHARE_URL_STANDARD_LENGTH */
+export const SHARE_URL_QR_LENGTH = SHARE_URL_STANDARD_LENGTH;
+
+/** Absolute upper bound for inline URL embedding. */
+export const MAX_URL_LENGTH = SHARE_URL_HD_LENGTH;
 export const MEDIA_STORAGE_PREFIX = 'cipher-garden-media-';
 
 export const EMOJIS = [

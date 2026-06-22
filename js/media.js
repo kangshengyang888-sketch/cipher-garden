@@ -1,8 +1,8 @@
 import {
   MEDIA_STORAGE_PREFIX,
   SHARE_URL_HD_LENGTH,
-  SHARE_URL_QR_LENGTH,
   SHARE_URL_SAFE_LENGTH,
+  SHARE_URL_STANDARD_LENGTH,
 } from './constants.js';
 
 const PHOTO_MAX_DIM = 1920;
@@ -116,55 +116,46 @@ export async function compressPhoto(dataUrl, options = {}) {
   return encodeCanvas(canvas, quality);
 }
 
-/** Standard mode — QR-optimized ladder; higher budget allows staying above 480px / 0.48 longer. */
-const COMPRESS_STEPS_QR = [
-  { maxDim: 1920, quality: 0.90 },
-  { maxDim: 1920, quality: 0.85 },
-  { maxDim: 1920, quality: 0.80 },
-  { maxDim: 1600, quality: 0.80 },
-  { maxDim: 1600, quality: 0.75 },
-  { maxDim: 1600, quality: 0.70 },
-  { maxDim: 1400, quality: 0.70 },
-  { maxDim: 1400, quality: 0.65 },
-  { maxDim: 1200, quality: 0.62 },
-  { maxDim: 1000, quality: 0.58 },
-  { maxDim: 800, quality: 0.54 },
-  { maxDim: 640, quality: 0.50 },
+/** 微信分享 — aggressive ladder to fit ≤2048 char URLs. */
+const COMPRESS_STEPS_WECHAT = [
+  { maxDim: 1200, quality: 0.72 },
+  { maxDim: 1000, quality: 0.65 },
+  { maxDim: 900, quality: 0.58 },
+  { maxDim: 800, quality: 0.52 },
+  { maxDim: 640, quality: 0.48 },
+  { maxDim: 560, quality: 0.44 },
   { maxDim: PHOTO_MIN_DIM, quality: PHOTO_QUALITY_LOW },
+  { maxDim: 400, quality: 0.38 },
+  { maxDim: 320, quality: 0.34 },
 ];
 
-/** HD mode — up to 2560px; quality floor ≥ 0.65. */
+/** 高清扫码 — moderate ladder to fit ≤2500 char URLs with better quality. */
 const COMPRESS_STEPS_HD = [
-  { maxDim: 2560, quality: 0.92 },
-  { maxDim: 2560, quality: 0.88 },
-  { maxDim: 2560, quality: 0.85 },
-  { maxDim: 2560, quality: 0.82 },
-  { maxDim: 2560, quality: 0.78 },
-  { maxDim: 1920, quality: 0.85 },
-  { maxDim: 1920, quality: 0.82 },
-  { maxDim: 1920, quality: 0.78 },
-  { maxDim: 1920, quality: 0.75 },
-  { maxDim: 1600, quality: 0.75 },
-  { maxDim: 1600, quality: 0.72 },
-  { maxDim: 1400, quality: 0.70 },
-  { maxDim: 1200, quality: 0.68 },
-  { maxDim: 1000, quality: 0.65 },
+  { maxDim: 1600, quality: 0.82 },
+  { maxDim: 1400, quality: 0.76 },
+  { maxDim: 1200, quality: 0.70 },
+  { maxDim: 1000, quality: 0.64 },
+  { maxDim: 900, quality: 0.58 },
+  { maxDim: 800, quality: 0.52 },
+  { maxDim: 640, quality: 0.48 },
+  { maxDim: PHOTO_MIN_DIM, quality: PHOTO_QUALITY_LOW },
+  { maxDim: 400, quality: 0.38 },
 ];
 
 function getCompressSteps(mode = 'standard') {
-  return mode === 'hd' ? COMPRESS_STEPS_HD : COMPRESS_STEPS_QR;
+  return mode === 'hd' ? COMPRESS_STEPS_HD : COMPRESS_STEPS_WECHAT;
 }
 
 export function getShareUrlLimit(mode = 'standard') {
   if (mode === 'hd') return SHARE_URL_HD_LENGTH;
-  return SHARE_URL_QR_LENGTH;
+  return SHARE_URL_STANDARD_LENGTH;
 }
 
 export async function compressPhotoForShare(
   dataUrl,
   measureUrlLength,
   onProgress,
-  maxUrlLength = SHARE_URL_QR_LENGTH,
+  maxUrlLength = SHARE_URL_STANDARD_LENGTH,
   mode = 'standard',
 ) {
   const steps = getCompressSteps(mode);
@@ -306,7 +297,7 @@ export function resolveSecretMedia(puzzle) {
   return null;
 }
 
-export function assessUrlLength(url, limit = SHARE_URL_QR_LENGTH) {
+export function assessUrlLength(url, limit = SHARE_URL_STANDARD_LENGTH) {
   const len = url.length;
   return {
     length: len,
@@ -322,6 +313,6 @@ export const PHOTO_COMPRESS_PARAMS = {
   minDim: PHOTO_MIN_DIM,
   qualityHigh: PHOTO_QUALITY_HIGH,
   qualityLow: PHOTO_QUALITY_LOW,
-  stepsQr: COMPRESS_STEPS_QR,
+  stepsWechat: COMPRESS_STEPS_WECHAT,
   stepsHd: COMPRESS_STEPS_HD,
 };

@@ -114,24 +114,26 @@
             <fieldset class="share-mode-toggle">
               <legend>分享模式</legend>
               <label class="share-mode-option">
-                <input type="radio" name="shareMode" id="shareModeStandard" value="standard">
-                <span>标准分享（适合复制到微信聊天，≤24000 字符 · 推荐扫码）</span>
+                <input type="radio" name="shareMode" id="shareModeStandard" value="standard" checked>
+                <span>微信分享（默认，≤2048 字符，推荐扫码）</span>
               </label>
               <label class="share-mode-option">
-                <input type="radio" name="shareMode" id="shareModeHd" value="hd" checked>
-                <span>高清模式（适合扫码打开，≤64000 字符 · 画质更好）</span>
+                <input type="radio" name="shareMode" id="shareModeHd" value="hd">
+                <span>高清扫码（≤2500 字符，画质更好，仅限扫码）</span>
               </label>
             </fieldset>
-            <p class="hint share-hint">标准分享适合复制到微信聊天；高清模式适合扫码打开，画质更好。部署到 GitHub Pages 后，链接与二维码均指向线上地址。</p>
+            <p class="hint share-hint">生成后请用下方二维码分享；微信聊天粘贴长链接可能被截断。</p>
             <button type="button" id="generateLinkBtn" class="btn btn-primary">生成分享链接</button>
             <p id="localhostWarning" class="url-warning url-warning-danger hidden"></p>
-            <div id="shareResult" class="share-result hidden">
-              <input type="text" id="shareUrl" readonly>
-              <button type="button" id="copyLinkBtn" class="btn btn-accent">复制</button>
-            </div>
             <div id="shareQrWrap" class="share-qr-wrap hidden">
               <p class="share-qr-label">微信扫码打开</p>
               <canvas id="shareQrCanvas" aria-label="分享链接二维码"></canvas>
+              <p id="shareQrError" class="share-qr-error hidden"></p>
+            </div>
+            <p id="shareLengthHint" class="url-warning hidden"></p>
+            <div id="shareResult" class="share-result hidden">
+              <input type="text" id="shareUrl" readonly>
+              <button type="button" id="copyLinkBtn" class="btn btn-accent">复制链接</button>
             </div>
             <p id="copyToast" class="toast hidden">已复制到剪贴板</p>
           </div>
@@ -208,7 +210,12 @@
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/qrcode@1/build/qrcode.min.js"></script>
+  <script src="vendor/qrcode.min.js"></script>
+  <script>
+    if (typeof QRCode === 'undefined') {
+      document.write('<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"><\/script>');
+    }
+  </script>
   <script type="module" src="js/main.js"></script>
 </body>
 </html>

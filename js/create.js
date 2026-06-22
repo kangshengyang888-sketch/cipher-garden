@@ -3,7 +3,7 @@ import {
   DRAFT_KEY,
   EMOJIS,
   ROTATIONS,
-  SHARE_URL_QR_LENGTH,
+  SHARE_URL_HD_LENGTH,
   SHARE_URL_SAFE_LENGTH,
   emptyCell,
   emptyGrid,
@@ -74,12 +74,14 @@ export function initCreateMode() {
     shareModeStandard: document.getElementById('shareModeStandard'),
     shareModeHd: document.getElementById('shareModeHd'),
     localhostWarning: document.getElementById('localhostWarning'),
+    shareLengthHint: document.getElementById('shareLengthHint'),
     generateLinkBtn: document.getElementById('generateLinkBtn'),
     shareResult: document.getElementById('shareResult'),
     shareUrl: document.getElementById('shareUrl'),
     copyLinkBtn: document.getElementById('copyLinkBtn'),
     shareQrWrap: document.getElementById('shareQrWrap'),
     shareQrCanvas: document.getElementById('shareQrCanvas'),
+    shareQrError: document.getElementById('shareQrError'),
     copyToast: document.getElementById('copyToast'),
     clearGridBtn: document.getElementById('clearGridBtn'),
     loadDraftBtn: document.getElementById('loadDraftBtn'),
@@ -132,16 +134,23 @@ export function initCreateMode() {
   });
 
   els.copyLinkBtn.addEventListener('click', async () => {
+    const url = els.shareUrl.value;
+    if (!url) return;
     try {
-      await navigator.clipboard.writeText(els.shareUrl.value);
-      els.copyToast.classList.remove('hidden');
-      setTimeout(() => els.copyToast.classList.add('hidden'), 2000);
+      await navigator.clipboard.writeText(url);
     } catch {
       els.shareUrl.select();
       document.execCommand('copy');
-      els.copyToast.classList.remove('hidden');
-      setTimeout(() => els.copyToast.classList.add('hidden'), 2000);
     }
+    const tooLongForChat = url.length > SHARE_URL_SAFE_LENGTH;
+    els.copyToast.textContent = tooLongForChat
+      ? `已复制（${url.length} 字符，微信聊天可能截断，请优先用下方二维码分享）`
+      : '已复制到剪贴板';
+    els.copyToast.classList.remove('hidden');
+    setTimeout(() => {
+      els.copyToast.classList.add('hidden');
+      els.copyToast.textContent = '已复制到剪贴板';
+    }, tooLongForChat ? 4000 : 2000);
   });
 
   els.hiddenMessage.addEventListener('input', () => {
@@ -388,8 +397,8 @@ async function generateShareLink(state, els) {
 
   if (secretMedia?.type === 'video' && shareMode === 'standard') {
     alert(
-      '视频密语链接过长，无法在微信等应用中分享。\n\n' +
-      '请改用「照片密语」，或切换到「高清模式」后再试（仍可能无法在微信发送）。',
+      '视频密语链接过长，无法生成微信可分享的短链接。\n\n' +
+      '请改用「照片密语」或「文字密语」。',
     );
     return;
   }
@@ -412,9 +421,11 @@ async function generateShareLink(state, els) {
       if (!result.fits) {
         setCompressStatus(els, '');
         const modeHint = shareMode === 'standard'
-          ? '请换用更小的照片、仅保留文字密语，或切换到高清模式。'
+          ? '请换用更小的照片、仅保留文字密语，或切换到「高清扫码」模式。'
           : '请换用更小的照片，或仅使用文字密语。';
-        alert(`照片压缩后链接仍过长（${result.urlLength} 字符，上限 ${urlLimit}）。${modeHint}`);
+        alert(
+          `照片压缩后链接仍过长（${result.urlLength} 字符，上限 ${urlLimit}）。\n\n${modeHint}`,
+        );
         return;
       }
       const bytes = estimateDataUrlBytes(result.dataUrl);
@@ -453,43 +464,63 @@ async function generateShareLink(state, els) {
 
   els.shareUrl.value = url;
   els.shareResult.classList.remove('hidden');
-  renderShareQr(els, url);
+  await renderShareQr(els, url, urlLimit);
   saveDraft(state, els);
 }
 
-function renderShareQr(els, url) {
-  const { shareQrWrap, shareQrCanvas } = els;
+async function renderShareQr(els, url, urlLimit) {
+  const { shareQrWrap, shareQrCanvas, shareQrError } = els;
   if (!shareQrWrap || !shareQrCanvas) return;
 
+  shareQrWrap.classList.remove('hidden');
+  shareQrCanvas.classList.remove('hidden');
+  if (shareQrError) {
+    shareQrError.classList.add('hidden');
+    shareQrError.textContent = '';
+  }
+
   if (typeof QRCode === 'undefined') {
-    shareQrWrap.classList.add('hidden');
+    shareQrCanvas.classList.add('hidden');
+    if (shareQrError) {
+      shareQrError.textContent = '二维码库未加载，请刷新页面后重试。';
+      shareQrError.classList.remove('hidden');
+    }
     return;
   }
 
-  const errorCorrectionLevel = url.length > SHARE_URL_QR_LENGTH ? 'L' : url.length > SHARE_URL_QR_LENGTH / 2 ? 'M' : 'M';
+  const errorCorrectionLevel = url.length > 1500 ? 'L' : 'M';
 
-  QRCode.toCanvas(
-    shareQrCanvas,
-    url,
-    {
-      width: 260,
-      margin: 2,
-      errorCorrectionLevel,
-      color: { dark: '#1a1a1a', light: '#ffffff' },
-    },
-    (err) => {
-      if (err) {
-        console.error('QR code generation failed', err);
-        shareQrWrap.classList.add('hidden');
-        return;
-      }
-      shareQrWrap.classList.remove('hidden');
-    },
-  );
+  return new Promise((resolve) => {
+    QRCode.toCanvas(
+      shareQrCanvas,
+      url,
+      {
+        width: 260,
+        margin: 2,
+        errorCorrectionLevel,
+        color: { dark: '#1a1a1a', light: '#ffffff' },
+      },
+      (err) => {
+        if (err) {
+          console.error('QR code generation failed', err);
+          shareQrCanvas.classList.add('hidden');
+          if (shareQrError) {
+            shareQrError.textContent =
+              `二维码生成失败（链接 ${url.length} 字符，上限 ${urlLimit}）。请换更小照片或仅文字密语。`;
+            shareQrError.classList.remove('hidden');
+          }
+          resolve(false);
+          return;
+        }
+        shareQrWrap.classList.remove('hidden');
+        resolve(true);
+      },
+    );
+  });
 }
 
 function showShareWarnings(els, assessment, shareMode) {
-  els.urlLengthWarning.classList.add('hidden');
+  els.shareLengthHint?.classList.add('hidden');
   els.localhostWarning.classList.add('hidden');
 
   const warnings = [];
@@ -500,7 +531,7 @@ function showShareWarnings(els, assessment, shareMode) {
       els.localhostWarning.classList.remove('url-warning-danger');
       els.localhostWarning.classList.add('url-warning-info');
       els.localhostWarning.textContent =
-        '本地开发中：分享链接与二维码已指向 GitHub Pages 线上地址，可直接复制或微信扫码分享。';
+        '本地开发中：分享链接与二维码已指向 GitHub Pages 线上地址，可直接扫码或复制分享。';
     } else {
       els.localhostWarning.classList.add('url-warning-danger');
       els.localhostWarning.classList.remove('url-warning-info');
@@ -512,24 +543,24 @@ function showShareWarnings(els, assessment, shareMode) {
 
   if (shareMode === 'hd') {
     warnings.push(
-      `高清模式：链接 ${assessment.length} 字符（上限 ${assessment.limit}）。` +
-      '推荐微信扫码打开，画质更好；复制到聊天可能被截断。',
+      `高清扫码：链接 ${assessment.length} 字符（上限 ${SHARE_URL_HD_LENGTH}）。` +
+      '请用上方二维码分享，勿复制到微信聊天。',
     );
   } else if (assessment.length > SHARE_URL_SAFE_LENGTH) {
     warnings.push(
       `链接 ${assessment.length} 字符，超过微信聊天粘贴上限（约 ${SHARE_URL_SAFE_LENGTH}）。` +
-      '请优先使用下方二维码分享；若必须复制链接，请换更小照片。',
+      '请优先使用上方二维码分享。',
     );
-  } else if (assessment.warning) {
+  } else {
     warnings.push(
-      `链接 ${assessment.length} 字符，接近 ${assessment.limit} 字符上限。` +
-      '若在微信发送失败，请换用更小的照片或切换到高清模式。',
+      `微信分享：链接 ${assessment.length} 字符（上限 ${SHARE_URL_SAFE_LENGTH}）。` +
+      '推荐用上方二维码分享；短链接也可复制到微信聊天。',
     );
   }
 
-  if (warnings.length) {
-    els.urlLengthWarning.classList.remove('hidden');
-    els.urlLengthWarning.textContent = warnings.join(' ');
+  if (warnings.length && els.shareLengthHint) {
+    els.shareLengthHint.classList.remove('hidden');
+    els.shareLengthHint.textContent = warnings.join(' ');
   }
 }
 
