@@ -5,6 +5,7 @@ import {
   ROTATIONS,
   SHARE_URL_HD_LENGTH,
   SHARE_URL_SAFE_LENGTH,
+  SHARE_URL_STANDARD_LENGTH,
   emptyCell,
   emptyGrid,
   getColor,
@@ -366,10 +367,11 @@ function getShareMode(els) {
   return els.shareModeHd?.checked ? 'hd' : 'standard';
 }
 
-function makePhotoUrlMeasurer(state, els) {
+function makePhotoUrlMeasurer(state, els, mode = null) {
+  const shareMode = mode ?? getShareMode(els);
   const message = getMessageForEncode(state, els);
   const cells = state.cells;
-  const limit = getShareUrlLimit(getShareMode(els));
+  const limit = getShareUrlLimit(shareMode);
   return (photoDataUrl) => {
     const media = { type: 'photo', data: photoDataUrl };
     const { encoded } = encodePuzzle(cells, message, media);
@@ -406,15 +408,33 @@ async function generateShareLink(state, els) {
   if (secretMedia?.type === 'photo') {
     setCompressStatus(els, '正在优化照片以适合分享…');
     els.generateLinkBtn.disabled = true;
+    let hdFallbackUsed = false;
     try {
-      const measureUrl = makePhotoUrlMeasurer(state, els);
-      const result = await compressPhotoForShare(
+      const measureUrl = makePhotoUrlMeasurer(state, els, shareMode);
+      let result = await compressPhotoForShare(
         secretMedia.data,
         (dataUrl) => measureUrl(dataUrl).length,
         (msg) => setCompressStatus(els, msg),
         urlLimit,
         shareMode,
       );
+
+      if (!result.fits && shareMode === 'hd') {
+        setCompressStatus(els, '高清模式仍过长，正在进一步压缩…');
+        const fallbackMeasure = makePhotoUrlMeasurer(state, els, 'standard');
+        const fallbackResult = await compressPhotoForShare(
+          secretMedia.data,
+          (dataUrl) => fallbackMeasure(dataUrl).length,
+          (msg) => setCompressStatus(els, msg),
+          SHARE_URL_STANDARD_LENGTH,
+          'standard',
+        );
+        if (fallbackResult.fits) {
+          result = fallbackResult;
+          hdFallbackUsed = true;
+        }
+      }
+
       secretMedia = { type: 'photo', data: result.dataUrl };
       state.secretMedia = secretMedia;
       saveDraft(state, els);
@@ -428,14 +448,18 @@ async function generateShareLink(state, els) {
         );
         return;
       }
+      const effectiveLimit = hdFallbackUsed ? SHARE_URL_STANDARD_LENGTH : urlLimit;
       const bytes = estimateDataUrlBytes(result.dataUrl);
-      setCompressStatus(
-        els,
-        `照片已优化（约 ${formatBytes(bytes)}，链接约 ${result.urlLength} 字符，上限 ${urlLimit}）`,
-      );
+      const statusMsg = hdFallbackUsed
+        ? `照片已进一步压缩以生成可扫描链接（约 ${formatBytes(bytes)}，链接约 ${result.urlLength} 字符）`
+        : `照片已优化（约 ${formatBytes(bytes)}，链接约 ${result.urlLength} 字符，上限 ${effectiveLimit}）`;
+      setCompressStatus(els, statusMsg);
+      state._hdFallbackUsed = hdFallbackUsed;
     } finally {
       els.generateLinkBtn.disabled = false;
     }
+  } else {
+    state._hdFallbackUsed = false;
   }
 
   const result = encodePuzzle(state.cells, message, secretMedia);
@@ -445,7 +469,8 @@ async function generateShareLink(state, els) {
   }
 
   const url = buildShareUrl(result.encoded);
-  const assessment = assessUrlLength(url, urlLimit);
+  const effectiveLimit = state._hdFallbackUsed ? SHARE_URL_STANDARD_LENGTH : urlLimit;
+  const assessment = assessUrlLength(url, effectiveLimit);
 
   if (secretMedia?.type === 'video' && assessment.tooLong) {
     alert(
@@ -460,11 +485,11 @@ async function generateShareLink(state, els) {
     return;
   }
 
-  showShareWarnings(els, assessment, shareMode);
+  showShareWarnings(els, assessment, shareMode, state._hdFallbackUsed);
 
   els.shareUrl.value = url;
   els.shareResult.classList.remove('hidden');
-  await renderShareQr(els, url, urlLimit);
+  await renderShareQr(els, url, effectiveLimit);
   saveDraft(state, els);
 }
 
@@ -489,13 +514,14 @@ async function renderShareQr(els, url, urlLimit) {
   }
 
   const errorCorrectionLevel = url.length > 1500 ? 'L' : 'M';
+  const qrWidth = url.length > 2500 ? 320 : 260;
 
   return new Promise((resolve) => {
     QRCode.toCanvas(
       shareQrCanvas,
       url,
       {
-        width: 260,
+        width: qrWidth,
         margin: 2,
         errorCorrectionLevel,
         color: { dark: '#1a1a1a', light: '#ffffff' },
@@ -519,7 +545,7 @@ async function renderShareQr(els, url, urlLimit) {
   });
 }
 
-function showShareWarnings(els, assessment, shareMode) {
+function showShareWarnings(els, assessment, shareMode, hdFallbackUsed = false) {
   els.shareLengthHint?.classList.add('hidden');
   els.localhostWarning.classList.add('hidden');
 
@@ -541,7 +567,11 @@ function showShareWarnings(els, assessment, shareMode) {
     }
   }
 
-  if (shareMode === 'hd') {
+  if (hdFallbackUsed) {
+    warnings.push(
+      `照片已进一步压缩以生成可扫描链接（${assessment.length} 字符）。请用上方二维码分享。`,
+    );
+  } else if (shareMode === 'hd') {
     warnings.push(
       `高清扫码：链接 ${assessment.length} 字符（上限 ${SHARE_URL_HD_LENGTH}）。` +
       '请用上方二维码分享，勿复制到微信聊天。',

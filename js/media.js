@@ -129,17 +129,21 @@ const COMPRESS_STEPS_WECHAT = [
   { maxDim: 320, quality: 0.34 },
 ];
 
-/** 高清扫码 — moderate ladder to fit ≤2500 char URLs with better quality. */
+/** 高清扫码 — longer ladder; up to 2560px before stepping down to fit ≤3100 char URLs. */
 const COMPRESS_STEPS_HD = [
-  { maxDim: 1600, quality: 0.82 },
-  { maxDim: 1400, quality: 0.76 },
-  { maxDim: 1200, quality: 0.70 },
-  { maxDim: 1000, quality: 0.64 },
-  { maxDim: 900, quality: 0.58 },
-  { maxDim: 800, quality: 0.52 },
-  { maxDim: 640, quality: 0.48 },
-  { maxDim: PHOTO_MIN_DIM, quality: PHOTO_QUALITY_LOW },
-  { maxDim: 400, quality: 0.38 },
+  { maxDim: 2560, quality: 0.86 },
+  { maxDim: 2240, quality: 0.82 },
+  { maxDim: 1920, quality: 0.78 },
+  { maxDim: 1680, quality: 0.74 },
+  { maxDim: 1440, quality: 0.70 },
+  { maxDim: 1280, quality: 0.66 },
+  { maxDim: 1120, quality: 0.62 },
+  { maxDim: 960, quality: 0.58 },
+  { maxDim: 800, quality: 0.55 },
+  { maxDim: 640, quality: 0.55 },
+  { maxDim: PHOTO_MIN_DIM, quality: 0.52 },
+  { maxDim: 400, quality: 0.48 },
+  { maxDim: 320, quality: 0.42 },
 ];
 
 function getCompressSteps(mode = 'standard') {

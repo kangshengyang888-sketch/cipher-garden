@@ -11,8 +11,8 @@ export const SHARE_URL_SAFE_LENGTH = 2048;
 /** 微信分享 — aggressive compression; fits WeChat chat paste and scannable QR. */
 export const SHARE_URL_STANDARD_LENGTH = 2048;
 
-/** 高清扫码 — moderate compression; QR-only, better photo quality (~1200–2500 chars). */
-export const SHARE_URL_HD_LENGTH = 2500;
+/** 高清扫码 — QR-only; better photo quality. EC-L Version 40 fits ~3100 mixed-char URLs. */
+export const SHARE_URL_HD_LENGTH = 3100;
 
 /** @deprecated Use SHARE_URL_STANDARD_LENGTH */
 export const SHARE_URL_QR_LENGTH = SHARE_URL_STANDARD_LENGTH;
