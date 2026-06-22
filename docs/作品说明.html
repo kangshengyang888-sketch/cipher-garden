@@ -231,6 +231,94 @@
       color: #1f4d1a;
     }
 
+    /* Presentation script */
+    .script-section {
+      page-break-before: always;
+    }
+
+    .script-section h2 {
+      font-size: 1.12rem;
+    }
+
+    .script-section h3 {
+      margin: 18px 0 10px;
+      padding-left: 10px;
+      font-size: 0.98rem;
+      font-weight: 700;
+      color: #2d5a28;
+      border-left: 3px solid #7ab06e;
+      letter-spacing: 0.04em;
+    }
+
+    .script-quote {
+      margin: 0 0 10px;
+      padding: 10px 14px 10px 16px;
+      border-left: 3px solid #a8c89e;
+      border-radius: 0 6px 6px 0;
+      background: #f4faf0;
+      font-size: 0.95rem;
+      line-height: 1.85;
+      text-align: justify;
+      text-justify: inter-ideograph;
+    }
+
+    .script-demo {
+      margin: 10px 0 14px;
+      padding: 12px 16px;
+      border-radius: 8px;
+      background: #eef8ea;
+      border: 1px solid #c5ddbc;
+      font-size: 0.9rem;
+    }
+
+    .script-demo strong {
+      display: block;
+      margin-bottom: 6px;
+      color: #2d5a28;
+      font-size: 0.88rem;
+      letter-spacing: 0.06em;
+    }
+
+    .script-demo ul {
+      margin: 0;
+      padding-left: 1.2em;
+    }
+
+    .script-closing {
+      margin-top: 14px;
+      padding: 12px 16px;
+      text-align: center;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #e8f5e3 0%, #f4faf0 100%);
+      border: 1px solid #c5ddbc;
+      font-size: 0.95rem;
+    }
+
+    .tips-table {
+      width: 100%;
+      margin: 12px 0 0;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+    }
+
+    .tips-table th,
+    .tips-table td {
+      padding: 8px 12px;
+      text-align: left;
+      border: 1px solid #c8dfc0;
+    }
+
+    .tips-table th {
+      background: #e4f0df;
+      color: #2d5a28;
+      font-weight: 600;
+      width: 22%;
+    }
+
+    .tips-table td {
+      background: #fafcf8;
+    }
+
     @media print {
       body {
         background: #fff;
@@ -322,6 +410,63 @@
         <li><strong>视觉生成：</strong>Parametric SVG 花朵由 emoji + 旋转 + 花色哈希推导花瓣数、形状与渐变，解谜界面只展示抽象花朵而非明文 emoji。</li>
         <li><strong>解谜逻辑：</strong>Wordle 式逐格反馈判定（完全匹配 / emoji 对旋转色错 / emoji 在别格 / 不匹配），三次机会后揭晓或失败。</li>
       </ul>
+    </section>
+
+    <section id="presentation" class="script-section">
+      <h2>答辩稿（3 分钟）</h2>
+
+      <h3>第 1 分钟：我做了什么</h3>
+      <p class="script-quote">「我的作品叫<strong>《异步密语花园》</strong>，是一个<strong>让朋友通过种花、解谜、扫码分享，体验秘密被揭晓的网页互动艺术作品</strong>。」</p>
+      <p class="script-quote">「创作者在 5×5 花圃里选择 emoji、旋转角度和花色种花，可以藏一句文字，也可以拍一张照片作为密语。生成二维码发给朋友后，对方<strong>看不到答案</strong>，只能根据花的形态去猜。」</p>
+      <p class="script-quote">「猜对有 Wordle 式反馈，一共 3 次机会；全部猜对后，花朵会绽放，文字或照片才会出现。」</p>
+      <div class="script-demo">
+        <strong>［现场演示约 10 秒］</strong>
+        <ul>
+          <li>快速种 2～3 格花 → 点「生成分享链接」→ 展示二维码</li>
+          <li>或切换到解谜页，提交一次猜测，展示反馈颜色</li>
+        </ul>
+      </div>
+
+      <h3>第 2 分钟：为什么做 + 怎么做</h3>
+      <p class="script-quote">「我想表达的是：<strong>在社交媒体里，表达往往太直接了；我想把『说给你听』变成『猜对了才给你看』。</strong> 秘密被编码、传递、解锁的过程，本身就有仪式感和情绪张力。」</p>
+      <p class="script-quote">「用户通过<strong>选择 emoji 种花、填写或拍摄密语、扫码分享</strong>互动，作品会<strong>生成一座独一无二的 parametric SVG 花圃</strong>；朋友解谜成功后，<strong>花朵绽放并揭晓隐藏内容</strong>。」</p>
+      <p class="script-quote">「技术上我使用了 <strong>HTML、CSS、JavaScript</strong>，纯前端实现，部署在 <strong>GitHub Pages</strong>。谜题数据用 <strong>lz-string</strong> 压缩后嵌入 URL，配合 <strong>二维码</strong>方便微信扫码；照片密语用到 <strong>Web Camera API</strong>，大图则自动上传临时图床以保证链接可分享。」</p>
+
+      <h3>第 3 分钟：最满意 + 未来计划</h3>
+      <p class="script-quote">「我最满意的是<strong>『揭晓瞬间』</strong>——朋友猜了几次、终于全对的那一刻，花圃绽放、照片或文字缓缓出现。那一刻的互动反馈，比直接发一张图或一句话更有记忆点。」</p>
+      <p class="script-quote">「如果继续迭代，我会<strong>加入更多密语形式</strong>（比如短视频、声音），做一个<strong>公开谜题墙</strong>让大家互相挑战，也会优化手机端的操作体验。」</p>
+      <div class="script-closing">
+        「谢谢，欢迎体验。」<br>
+        线上地址：<a href="https://kangshengyang888-sketch.github.io/cipher-garden/">https://kangshengyang888-sketch.github.io/cipher-garden/</a>
+      </div>
+
+      <h3>小提示（答辩时）</h3>
+      <table class="tips-table">
+        <thead>
+          <tr>
+            <th>环节</th>
+            <th>建议</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>演示前</td>
+            <td>提前种好一个简单谜题，密语写「答辩加油」或放一张小图</td>
+          </tr>
+          <tr>
+            <td>演示时</td>
+            <td>优先扫二维码，比复制长链接更稳</td>
+          </tr>
+          <tr>
+            <td>控时</td>
+            <td>第 1 分钟别展开讲技术，留到第 2 分钟</td>
+          </tr>
+          <tr>
+            <td>结尾</td>
+            <td>可以把二维码投屏，说「欢迎现场扫码体验」</td>
+          </tr>
+        </tbody>
+      </table>
     </section>
 
     <section id="author">
